@@ -53,8 +53,6 @@ class User(Base, UserRole, Identifiable):
 
     @classmethod
     def create(cls, session: sessionmaker, username: str, password: str) -> User | None:
-        if cls.find_by_username(session, username):
-            return None
         return super().create(session, username=username, password=cls.generate_hash(password))
 
     def get_identity(self):
