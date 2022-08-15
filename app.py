@@ -1,8 +1,5 @@
-from common import sessionmaker, db_url, db_meta
+from common import sessionmaker, db_url, db_meta, TEST_USERNAME, TEST_PASSWORD
 from main import app, socketio
-
-TEST_USERNAME: str = "test"
-TEST_PASSWORD: str = "123456"
 
 if db_url == "sqlite:///app.db":
     db_meta.drop_all()
