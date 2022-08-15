@@ -2,6 +2,7 @@
 
 - [Описание](#Описание)
 - [Задание](#Задание)
+- [Рекомендации](#Рекомендации)
 - [Ссылки](#Ссылки)
 
 ## Описание
@@ -33,5 +34,69 @@ pip install -r requirements.txt
 **Делать изменения в папке `__lib__` не нужно, коммитить их — тем более**
 
 ## Задание
+
+## Рекомендации
+### Flask-Fullstack
+В проекте во всю мощь используется библиотека flask-fullstack (FFS), которая подгружена в проекте в виде submodule-я \_\_lib\_\_. В ней есть частичная документация, но вот пример использования вытащить из проекта не удалось. Стоит прочитать документацию в файлах:
+- [Интерфейсы для БД](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/interfaces.py)
+- [.database_searcher](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/mixins.py#L53)
+- [.jwt_authorizer](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/mixins.py#L121)
+- [ResourceController + его методы](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/restx.py#L23)
+
+Понимание flask-restx и sqlalchemy сильно поможет в понимании ffs, уже с этими знаниями можно почитать информационный материал ниже:
+
+<details>
+  <summary>FFS: Порядок декораторов</summary>
+
+  Все упаковщики запросов (`.a_response`, `.marshal_with`, `.marshal_list_with` или `.lister`) должны быть последним декоратором перед методами в `Resource`. Иначе вылет ошибки из других декораторов (`.argument_parser`, `.database_searcher`, `.jwt_authorizer`) будет либо подавлен, либо завёрнут в дополнительный слой ненужной вложенности, нарушая описанное в документации. Технически не относится к декораторам документирования, но ради лучшей читабельности и общности стоит везде складывать декораторы в одинаковом порядке.
+
+  - все декораторы документации параметров запроса
+  - все декораторы документации формата ответов
+  - декораторы сессии (`with_session` или `with_auto_session`)
+  - декоратор авторизации (`.jwt_authorizer`)
+  - декоратор парсинга аргументов (`.argument_parser`)
+  - декоратор(-ы) поиска объектов в бд (`.database_searcher`)
+  - декоратор пост-обработки ответа (`.a_response`, `.marshal_with`, `.marshal_list_with` или `.lister`)
+</details>
+
+<details>
+  <summary>FFS: Shortcut-ы для БД</summary>
+
+  К объектам класса `sessionmaker` (ранее `Session`), которые по всему репозиторию обычно называются просто `session` добавлено несколько методов, упрощающих работу с логикой БД. По сути это простые shortcut-ы. Все их можно увидеть [тут](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/sqlalchemy.py#L15)
+
+  Ко всем классам, наследующим Base, теперь добавляется набор полезных методов, которые могут значительно уменьшить объём работы. Они создаются и документированы [тут](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/sqlalchemy.py#L84)
+
+</details>
+
+<details>
+  <summary>FFS: Модели для marshalling-а</summary>
+
+  Реализуются через [Pydantic](https://github.com/samuelcolvin/pydantic), а точнее модификацию его модели из flask-fullstack: [PydanticModel](https://github.com/niqzart/flask-fullstack/blob/master/flask_fullstack/marshals.py#L426).
+  
+  Модели стоит создавать внутри тела класса, наследующего Base. Так её название заполнится автоматически и будет привязано к тому ORM-объекту, который она конвертирует. А для моделей, содержащих колонки БД всё ещё проще: в PydanticModel (и её потомках) объявлены статические методы для добавления к модели колонок (`column_model`). 
+  
+  Проще всего понять это через пример. Две модели внутри User, первая (IndexProfile) с id, username, bio и avatar, взятыми из соответствующих колонок, и вторая (FullProfile) со всеми полями первой и name, surname, patronymic и group, взятыми из соответствующих колонок:
+  ```py
+  IndexProfile = PydanticModel.column_model(id, username, bio, avatar)
+  FullProfile = IndexProfile.column_model(name, surname, patronymic, group)
+  ```
+
+  - Модели объявляются в теле класса, наследующего Base!
+  - Названия переменных нужно держать в `snake_case`, для json-а они будут автоматически конвертированы в `kebab-case`
+  - Регистрировать новые модели не нужно, достаточно просто использовать их в методах, вроде `.marshal_with` или `.lister`
+</details>
+
+### Стиль кода
+- **Будет проверяться**
+- Соблюдение PEP8 обязательно
+- Желательно не забывать Zen
+- DRY приветствуется
+- Автоматическое реформатирование рекомендуется
+- Стоит поглядывать на стиль других файлов проекта
+
+### Стиль git-а
+- Желательно соблюдать [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- Решить задачу в несколько коммитов
+- Pull Request с описанием приветствуется
 
 ## Ссылки
