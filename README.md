@@ -1,5 +1,4 @@
 # Тестовое задание
-
 - [Описание](#Описание)
 - [Задание](#Задание)
 - [Рекомендации](#Рекомендации)
@@ -34,6 +33,7 @@ pip install -r requirements.txt
 **Делать изменения в папке `__lib__` не нужно, коммитить их — тем более**
 
 ## Задание
+Само задание будет кастомизированно для каждого!
 
 ## Рекомендации
 ### Flask-Fullstack
@@ -100,3 +100,19 @@ pip install -r requirements.txt
 - Pull Request с описанием приветствуется
 
 ## Ссылки
+### Общее
+- [PEP8](https://www.python.org/dev/peps/pep-0008/)
+- [pytest](https://docs.pytest.org/en/6.2.x/contents.html)
+
+### Flask и расширения:
+- [Flask-JWT-Extened](https://flask-jwt-extended.readthedocs.io/en/stable/)
+- [Flask-RESTX](https://flask-restx.readthedocs.io/en/latest/index.html)
+- [Flask Testing](https://flask.palletsprojects.com/en/2.0.x/testing/)
+
+### SQLAlchemy:
+- [Полный туториал](https://docs.sqlalchemy.org/en/14/tutorial/index.html)
+- [Объявление таблиц в ORM](https://docs.sqlalchemy.org/en/14/tutorial/metadata.html#defining-table-metadata-with-the-orm)
+- [Манипуляции с данными](https://docs.sqlalchemy.org/en/14/tutorial/orm_data_manipulation.html)
+- [Отношения между таблицами](https://docs.sqlalchemy.org/en/14/orm/relationships.html)
+- [Related object](https://docs.sqlalchemy.org/en/14/tutorial/orm_related_objects.html)
+- [Multiple join paths](https://docs.sqlalchemy.org/en/14/orm/join_conditions.html#handling-multiple-join-paths)
