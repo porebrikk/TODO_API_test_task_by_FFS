@@ -1,6 +1,8 @@
 .idea/
 .vscode/
 
+__pycache__
+ffs/
 venv/
 .cache/
 .pytest_cache/
