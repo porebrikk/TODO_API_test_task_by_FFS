@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from sqlalchemy import Column, ForeignKey, sql, select
 from sqlalchemy.sql.sqltypes import Integer, String, Date, Time
 from sqlalchemy.orm import relationship
+
 from __lib__.flask_fullstack import Identifiable, PydanticModel
-from .config import Base, sessionmaker
+from common import Base, sessionmaker
 
 
 class Todo(Base, Identifiable):
