@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import Column, ForeignKey, sql, select
-from sqlalchemy.sql.sqltypes import Integer, String, Date, Time
+from sqlalchemy.sql.sqltypes import Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship
 
 from __lib__.flask_fullstack import Identifiable, PydanticModel
@@ -11,57 +13,56 @@ from common import Base, sessionmaker
 class Todo(Base, Identifiable):
     __tablename__ = 'todos'
 
+    # Vital
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    start = Column(DateTime(), server_default=sql.func.now(), nullable=False)
+    duration = Column(Integer, nullable=True)
+    deleted = Column(Boolean, default=False, nullable=False)
+
+    # Category-related
     category_name = Column(String(100), ForeignKey('categories.name'), nullable=False)
     categories = relationship('Category', backref='todos')
+
+    # User-related
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     users = relationship('User', backref='todos')
-    start_date = Column(Date(), server_default=sql.func.current_date())
-    start_time = Column(Time(timezone=True), server_default=sql.func.current_time())
-    end_time = Column(Time(timezone=True), nullable=True)
 
-    MainData = PydanticModel.column_model(id, name, category_name, user_id, start_date, start_time, end_time)
-
-    @classmethod
-    def check_user(cls, session: sessionmaker, user) -> Todo | None:
-        return session.get_all(select(cls).filter_by(user_id=user))
+    MainData = PydanticModel.column_model(
+        id, name, start, duration, category_name, user_id
+    )
 
     @classmethod
-    def create(cls, session: sessionmaker, name: str, category_name: str, user_id: int,
-               start_date: str, start_time: str, end_time: str) -> Todo | None:
-        return super().create(session, name=name, category_name=category_name, user_id=user_id,
-                              start_date=start_date, start_time=start_time, end_time=end_time)
+    def create(
+            cls,
+            session: sessionmaker,
+            name: str,
+            start: datetime,
+            duration: int,
+            category_name: str,
+            user_id: int,
+    ) -> Todo | None:
+        return super().create(
+            session,
+            name=name,
+            category_name=category_name,
+            user_id=user_id,
+            start=start,
+            duration=duration,
+            deleted=False,
+        )
 
     @classmethod
-    def get_by_id(cls, session: sessionmaker, entry_id: int, user) -> Todo | None:
-        return session.get_first(select(cls).filter_by(id=entry_id, user_id=user))
+    def get_list(cls, session: sessionmaker, user_id: int) -> list[Todo]:
+        return session.get_all(select(cls).filter_by(user_id=user_id, deleted=False))
 
     @classmethod
-    def find_by_date(cls, session, entry_date: str, user) -> Todo | None:
-        return session.get_all(select(cls).filter_by(user_id=user, start_date=entry_date))
-
-
-class Category(Base, Identifiable):
-    __tablename__ = 'categories'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True, nullable=False)
-
-    MainData = PydanticModel.column_model(id, name)
+    def get_by_date(cls, session: sessionmaker, date: str, user_id: int) -> list[Todo]:
+        return session.get_all(select(cls).filter(
+            cls.user_id == user_id,
+            sql.func.date(cls.start) == sql.func.date(datetime.strptime(date, "%d/%m/%Y"))
+        ))
 
     @classmethod
-    def get_list(cls, session: sessionmaker) -> Category | None:
-        return session.get_all(select(cls))
-
-    @classmethod
-    def create(cls, session: sessionmaker, name: str) -> Category | None:
-        return super().create(session, name=name)
-
-    @classmethod
-    def get_by_id(cls, session: sessionmaker, entry_id: int) -> Category | None:
-        return session.get_first(select(cls).filter_by(id=entry_id))
-
-    @classmethod
-    def get_by_name(cls, session: sessionmaker, entry_name: str) -> Category | None:
-        return session.get_first(select(cls).filter_by(name=entry_name))
+    def get_by_id(cls, session: sessionmaker, entry_id: int, user_id: int) -> Todo | None:
+        return session.get_first(select(cls).filter_by(id=entry_id, user_id=user_id, deleted=False))
